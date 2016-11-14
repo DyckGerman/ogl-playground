@@ -23,6 +23,15 @@ namespace shaders {
       "{\n"
 //      "    color = vec4(0.1f, 0.1f, 0.1f, 1.0f);\n"
       "}\n\0";
+
+  const GLchar * fragment_shader_niceGray = "#version 330 core\n"
+      "\n"
+      "out vec4 color;\n"
+      "\n"
+      "void main()\n"
+      "{\n"
+        "    color = vec4(0.1f, 0.1f, 0.1f, 1.0f);\n"
+      "}\n\0";
 }
 
 #endif //OGL_PLAYGROUND_SHADERS_H_H
