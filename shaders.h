@@ -9,19 +9,22 @@ namespace shaders {
   const GLchar * vertex_shader = "#version 330 core\n"
       "  \n"
       "layout (location = 0) in vec3 position;\n"
+      "out vec3 vcolor;\n"
       "\n"
       "void main()\n"
       "{\n"
       "    gl_Position =  vec4(position.x, position.y, position.z, 1.0);\n"
+      "    vcolor =  gl_Position.xyz;\n"
       "}\n\0";
 
   const GLchar * fragment_shader = "#version 330 core\n"
       "\n"
       "out vec4 color;\n"
+      "in vec3 vcolor;\n"
       "\n"
       "void main()\n"
       "{\n"
-//      "    color = vec4(0.1f, 0.1f, 0.1f, 1.0f);\n"
+      "    color = vec4(vcolor.x, vcolor.y, vcolor.z, 0.5f);\n"
       "}\n\0";
 
   const GLchar * fragment_shader_niceGray = "#version 330 core\n"

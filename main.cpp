@@ -11,8 +11,14 @@
 
 #include "shaders.h"
 
+//void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+
 // Function prototypes
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void moveVerticles (GLfloat buffers[3]) {
+    for (int i = 0; i < 9; i++) {
+        buffers[i] += 0.002;
+    }
+}
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -27,6 +33,8 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
 
   // Create a GLFW window object that we can use for GLFW's functions
   GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Window the great", nullptr, nullptr);
@@ -37,7 +45,7 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   // Set the required callback functions
-  glfwSetKeyCallback(window, key_callback);
+//  glfwSetKeyCallback(window, key_callback);
 
   // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
   glewExperimental = GL_TRUE;
@@ -110,29 +118,29 @@ int main() {
 
   GLuint vaos[3], buffers[3];
 
-  glCreateVertexArrays(1, &vaos[0]);
+  glGenVertexArrays(1, &vaos[0]);
   glBindVertexArray(vaos[0]);
   glGenBuffers(1, &buffers[0]);
   glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_1), verticles_1, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_1), verticles_1, GL_STREAM_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *) 0);
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
 
-  glCreateVertexArrays(1, &vaos[1]);
+  glGenVertexArrays(1, &vaos[1]);
   glBindVertexArray(vaos[1]);
   glGenBuffers(1, &buffers[1]);
   glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_2), verticles_2, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_2), verticles_2, GL_STREAM_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *) 0);
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
 
-  glCreateVertexArrays(1, &vaos[2]);
+  glGenVertexArrays(1, &vaos[2]);
   glBindVertexArray(vaos[2]);
   glGenBuffers(1, &buffers[2]);
   glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_3), verticles_3, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_3), verticles_3, GL_STREAM_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *) 0);
   glEnableVertexAttribArray(0);
   glBindVertexArray(0);
@@ -145,7 +153,7 @@ int main() {
 
     // Render
     // Clear the colorbuffer
-    glClearColor(0.01f, 0.02f, 0.015f, 0.3f);
+    glClearColor(0.01f, 0.0f, 0.0f, 0.3f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
@@ -160,6 +168,12 @@ int main() {
     glBindVertexArray(0);
     // Swap the screen buffers
     glfwSwapBuffers(window);
+      glBindVertexArray(vaos[1]);
+      glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(verticles_2), verticles_2, GL_STREAM_DRAW);
+      glBindVertexArray(0);
+
+      moveVerticles(verticles_2);
   }
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
