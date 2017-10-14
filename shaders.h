@@ -33,7 +33,7 @@ namespace shaders {
       "\n"
       "void main()\n"
       "{\n"
-        "    color = vec4(0.1f, 0.1f, 0.1f, 1.0f);\n"
+        "    color = vec4(0.1f, 0.5f, 0.1f, 1.0f);\n"
       "}\n\0";
 }
 
