@@ -2,6 +2,11 @@
 #include <iostream>
 #include <cmath>
 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 // GLEW
 #define GLEW_STATIC
 
@@ -70,22 +75,6 @@ int main() {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
-//    GLuint vertexShader;
-//    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-//    glShaderSource(vertexShader, 1, &shaders::vertex_shader, NULL);
-//    glCompileShader(vertexShader);
-//
-//    GLuint fragmentShader;
-//    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(fragmentShader, 1, &shaders::fragment_shader, NULL);
-//    glCompileShader(fragmentShader);
-//
-//    GLuint fragmentShader_niceGray;
-//    fragmentShader_niceGray = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(fragmentShader_niceGray, 1, &shaders::fragment_shader_niceGray, NULL);
-//    glCompileShader(fragmentShader_niceGray);
-
-
     GLuint vertex_for_texture;
     vertex_for_texture = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_for_texture, 1, &shaders::vertex_for_texture, NULL);
@@ -99,15 +88,6 @@ int main() {
 
     GLint success;
     GLchar log[512] = "ddfds";
-//    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-//    glGetShaderInfoLog(vertexShader, 512, NULL, log);
-//    std::cout << "Vertex shader compillation status = " << success << "_\n";
-//    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-//    glGetShaderInfoLog(fragmentShader, 512, NULL, log);
-//    std::cout << "fragment shader compillation status = " << success << "_\n";
-//    glGetShaderiv(fragmentShader_niceGray, GL_COMPILE_STATUS, &success);
-//    glGetShaderInfoLog(fragmentShader_niceGray, 512, NULL, log);
-//    std::cout << "nice gray fragment shader compillation status = " << success << "_\n";
 
     glGetShaderiv(vertex_for_texture, GL_COMPILE_STATUS, &success);
     glGetShaderInfoLog(vertex_for_texture, 512, NULL, log);
@@ -117,15 +97,6 @@ int main() {
     std::cout << "nice gray fragment shader compillation status = " << success << "_\n";
 
     GLuint shaderProgram, shaderProgram_forGrey, shaderProgram_forTexture;
-//    shaderProgram = glCreateProgram();
-//    glAttachShader(shaderProgram, vertexShader);
-//    glAttachShader(shaderProgram, fragmentShader);
-//    glLinkProgram(shaderProgram);
-//
-//    shaderProgram_forGrey= glCreateProgram();
-//    glAttachShader(shaderProgram_forGrey, vertexShader);
-//    glAttachShader(shaderProgram_forGrey, fragmentShader_niceGray);
-//    glLinkProgram(shaderProgram_forGrey);
 
     shaderProgram_forTexture = glCreateProgram();
     glAttachShader(shaderProgram_forTexture, vertex_for_texture);
@@ -198,6 +169,19 @@ int main() {
 
     stbi_image_free(data);
 
+    glm::mat4 view;
+    // note that we're translating the scene in the reverse direction of where we want to move
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.1f, 100.0f);
+
+    glm::mat4 model1;
+    glm::mat4 model2;
+
+
+    float angle1 = 0;
+    float angle2 = 0;
     // Game loop
     while (!glfwWindowShouldClose(window)) {
     // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
@@ -211,6 +195,20 @@ int main() {
 
         glBindTexture(GL_TEXTURE_2D, texture);
         glUseProgram(shaderProgram_forTexture);
+
+        int viewLoc = glGetUniformLocation(shaderProgram_forTexture, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        int projectionLoc = glGetUniformLocation(shaderProgram_forTexture, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        angle1 += 0.1;
+        angle2 += 0.5;
+        model1 = glm::rotate(model1, glm::radians(angle1), glm::vec3(1.0f, 0.0f, 0.0f));
+        int model1Loc = glGetUniformLocation(shaderProgram_forTexture, "model1");
+        glUniformMatrix4fv(model1Loc, 1, GL_FALSE, glm::value_ptr(model1));
+        model2 = glm::rotate(model2, glm::radians(angle2), glm::vec3(0.0f, 1.0f, 0.0f));
+        int model2Loc = glGetUniformLocation(shaderProgram_forTexture, "model2");
+        glUniformMatrix4fv(model2Loc, 1, GL_FALSE, glm::value_ptr(model2));
+
         glBindVertexArray(vao);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
