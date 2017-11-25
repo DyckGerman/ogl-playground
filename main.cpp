@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cmath>
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -15,20 +14,14 @@
 // GLFW
 #include <GLFW/glfw3.h>
 
-#include "shaders.h"
+#include "shader.h"
+#include "camera.h"
 
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-//void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
-
-// Function prototypes
-void moveVerticles (GLfloat buffers[3]) {
-    for (int i = 0; i < 9; i++) {
-        buffers[i] += 0.002;
-    }
-}
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -54,7 +47,7 @@ GLFWwindow* createWindow () {
     }
     glfwMakeContextCurrent(window);
     // Set the required callback functions
-//  glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
     glewExperimental = GL_TRUE;
@@ -75,58 +68,36 @@ int main() {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
-    GLuint vertex_for_texture;
-    vertex_for_texture = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_for_texture, 1, &shaders::vertex_for_texture, NULL);
-    glCompileShader(vertex_for_texture);
-
-    GLuint fragment_for_texture;
-    fragment_for_texture = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_for_texture, 1, &shaders::fragment_for_texture, NULL);
-    glCompileShader(fragment_for_texture);
-
-
-    GLint success;
-    GLchar log[512] = "ddfds";
-
-    glGetShaderiv(vertex_for_texture, GL_COMPILE_STATUS, &success);
-    glGetShaderInfoLog(vertex_for_texture, 512, NULL, log);
-    std::cout << "Vertex shader compillation status = " << success << "_\n";
-    glGetShaderiv(fragment_for_texture, GL_COMPILE_STATUS, &success);
-    glGetShaderInfoLog(fragment_for_texture, 512, NULL, log);
-    std::cout << "nice gray fragment shader compillation status = " << success << "_\n";
-
-    GLuint shaderProgram, shaderProgram_forGrey, shaderProgram_forTexture;
-
-    shaderProgram_forTexture = glCreateProgram();
-    glAttachShader(shaderProgram_forTexture, vertex_for_texture);
-    glAttachShader(shaderProgram_forTexture, fragment_for_texture);
-    glLinkProgram(shaderProgram_forTexture);
-
-    int linkStatus;
-    glGetProgramiv(shaderProgram_forTexture, GL_LINK_STATUS, &linkStatus);
-
-    int verticlesCount = 100;
-    int indicesCount = 30;
-
-//    float verticles[verticlesCount];
-
-    const long twoPow32 = 2147483648;
+    Shader * shaderProgram_forTexture = new Shader("../shaders/texture_vertex_shader", "../shaders/texture_fragment_shader");
 
     float vertices[] = {
             // positions          // colors           // texture coords
             0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
             0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
             -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,    // top left
+
+            0.5f,  0.5f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+            0.5f, -0.5f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+            -0.5f, -0.5f, -1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+            -0.5f,  0.5f, -1.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,    // top left
+
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   // bottom right
+            0.5f, -0.5f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+            0.5f,  0.5f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f   // top right
     };
 
     unsigned int indices[] = {  // note that we start from 0!
             0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
+            1, 2, 3,    // second triangle,
+
+            4,5,7,
+            5,6,7,
+
+            8,9,10,
+            9,10,11
     };
-
-
 
     GLuint vao, vbo, veo;
     glGenVertexArrays(1, &vao);
@@ -149,6 +120,7 @@ int main() {
     glEnableVertexAttribArray(2);
 
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_DEPTH_TEST);
 
     // texture loading, binding and generating
 
@@ -174,7 +146,7 @@ int main() {
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.01f, 100.0f);
 
     glm::mat4 model1;
     glm::mat4 model2;
@@ -190,28 +162,26 @@ int main() {
         // Render
         // Clear the colorbuffer
         glClearColor(0.01f, 0.2f, 0.3f, 0.3f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
         glBindTexture(GL_TEXTURE_2D, texture);
-        glUseProgram(shaderProgram_forTexture);
+        shaderProgram_forTexture->use();
 
-        int viewLoc = glGetUniformLocation(shaderProgram_forTexture, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projectionLoc = glGetUniformLocation(shaderProgram_forTexture, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-        angle1 += 0.1;
-        angle2 += 0.5;
+        shaderProgram_forTexture->setMat4("view", view);
+        shaderProgram_forTexture->setMat4("projection", projection);
+
+        angle1 += 0.0001;
+        angle2 += 0.0005;
         model1 = glm::rotate(model1, glm::radians(angle1), glm::vec3(1.0f, 0.0f, 0.0f));
-        int model1Loc = glGetUniformLocation(shaderProgram_forTexture, "model1");
-        glUniformMatrix4fv(model1Loc, 1, GL_FALSE, glm::value_ptr(model1));
+        shaderProgram_forTexture->setMat4("model1", model1);
+        shaderProgram_forTexture->setMat4("model2", model2);
+
         model2 = glm::rotate(model2, glm::radians(angle2), glm::vec3(0.0f, 1.0f, 0.0f));
-        int model2Loc = glGetUniformLocation(shaderProgram_forTexture, "model2");
-        glUniformMatrix4fv(model2Loc, 1, GL_FALSE, glm::value_ptr(model2));
 
         glBindVertexArray(vao);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         // Swap the screen buffers
         glfwSwapBuffers(window);

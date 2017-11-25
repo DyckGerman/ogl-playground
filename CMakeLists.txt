@@ -5,7 +5,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
         main.cpp
-        shaders.h)
+        shaders.h
+        camera.h
+        shader.h)
 
 SET(CMAKE_CXX_LINK_FLAGS "-framework OpenGL")
 

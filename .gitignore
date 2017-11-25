@@ -30,3 +30,6 @@
 
 # IDE's files
 .idea/
+
+cmake-build-debug
+Makefile
