@@ -22,9 +22,22 @@
 #include "stb_image.h"
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+float angle1 = 0;
+float angle2 = 0;
+
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.01f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 GLFWwindow* createWindow () {
     std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
@@ -48,6 +61,7 @@ GLFWwindow* createWindow () {
     glfwMakeContextCurrent(window);
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback (window, mouse_pos_callback);
 
     // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
     glewExperimental = GL_TRUE;
@@ -119,7 +133,7 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
 
     // texture loading, binding and generating
@@ -142,8 +156,7 @@ int main() {
     stbi_image_free(data);
 
     glm::mat4 view;
-    // note that we're translating the scene in the reverse direction of where we want to move
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
 
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.01f, 100.0f);
@@ -152,12 +165,12 @@ int main() {
     glm::mat4 model2;
 
 
-    float angle1 = 0;
-    float angle2 = 0;
+
     // Game loop
     while (!glfwWindowShouldClose(window)) {
     // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
-        glfwPollEvents();
+
+        view = camera.GetViewMatrix();
 
         // Render
         // Clear the colorbuffer
@@ -171,8 +184,7 @@ int main() {
         shaderProgram_forTexture->setMat4("view", view);
         shaderProgram_forTexture->setMat4("projection", projection);
 
-        angle1 += 0.0001;
-        angle2 += 0.0005;
+
         model1 = glm::rotate(model1, glm::radians(angle1), glm::vec3(1.0f, 0.0f, 0.0f));
         shaderProgram_forTexture->setMat4("model1", model1);
         shaderProgram_forTexture->setMat4("model2", model2);
@@ -185,6 +197,7 @@ int main() {
 
         // Swap the screen buffers
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
@@ -200,4 +213,33 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
   std::cout << key << std::endl;
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+
+void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos) {
+    std::cout << xpos << " - " << ypos << std::endl;
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
