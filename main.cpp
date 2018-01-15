@@ -62,6 +62,7 @@ GLFWwindow* createWindow () {
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback (window, mouse_pos_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
 
     // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
     glewExperimental = GL_TRUE;
@@ -133,7 +134,7 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
 
     // texture loading, binding and generating

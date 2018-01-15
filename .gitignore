@@ -33,3 +33,7 @@
 
 cmake-build-debug
 Makefile
+CMakeFiles/*
+cmake_install.cmake
+CmakeCache.txt
+ogl_playground
